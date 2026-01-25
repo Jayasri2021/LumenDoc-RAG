@@ -1,6 +1,6 @@
 # venv files
 venv/
-
 __pycache__/
-
 uploaded_files/
+.env
+faiss_indexes/

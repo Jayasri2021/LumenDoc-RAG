@@ -2,6 +2,11 @@ fastapi
 uvicorn
 langchain
 langchain-community
+langchain-openai
 pypdf
 beautifulsoup4
-faiss-cpu==1.8.0
+numpy<2.0
+faiss-cpu==1.7.4
+openai
+tiktoken
+python-dotenv

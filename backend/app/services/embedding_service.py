@@ -1,6 +1,12 @@
-from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
+from app.core.config import OPENAI_API_KEY
 
 def get_embedding_model():
-    return OpenAIEmbeddings(
-        model = "text-embedding-3-small"
-    )
+    """Get OpenAI embedding model instance."""
+    try:
+        return OpenAIEmbeddings(
+            model="text-embedding-3-small",
+            openai_api_key=OPENAI_API_KEY
+        )
+    except Exception as e:
+        raise RuntimeError(f"Failed to initialize embedding model: {str(e)}")
