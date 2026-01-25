@@ -17,6 +17,12 @@ export class RagApiService {
     );
   }
 
+  ingestUrl(url: string) {
+    return this.http.post<any>(`${this.baseUrl}/documents/ingest-url`, {
+      url
+    });
+  }
+
   query(documentId: string, question: string) {
     return this.http.post<any>(`${this.baseUrl}/query`, {
       document_id: documentId,

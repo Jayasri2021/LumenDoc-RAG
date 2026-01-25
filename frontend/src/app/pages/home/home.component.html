@@ -1,0 +1,34 @@
+
+<div class="home-container">
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="kicker">Document Intelligence Workspace</p>
+      <h2>Turn dense files into crisp answers.</h2>
+      <p class="lead">
+        LumenDoc QA transforms PDFs and web pages into a searchable, chat-ready knowledge base so you can ask
+        precise questions and get grounded answers instantly.
+      </p>
+      <button (click)="upload()">Get Started</button>
+    </div>
+    <div class="hero-panel">
+      <div class="hero-card">
+        <p class="card-title">What you can do</p>
+        <ul>
+          <li>Upload a PDF or paste a URL</li>
+          <li>Ask natural-language questions</li>
+          <li>Get concise answers powered by RAG</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="about">
+    <h3>About:</h3>
+    <p>
+      LumenDoc QA is a retrieval-augmented document Q&amp;A project that ingests PDFs or web URLs, splits them into
+      searchable chunks, and retrieves the most relevant passages to answer your questions accurately. It uses an
+      Angular frontend, a FastAPI + Python backend, LangChain for orchestration, FAISS for vector search, and OpenAI
+      models to generate responses grounded in your source material.
+    </p>
+  </section>
+</div>

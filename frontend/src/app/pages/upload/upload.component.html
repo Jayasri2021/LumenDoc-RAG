@@ -1,19 +1,125 @@
-<div class="card upload-container">
-  <h2>📄 Upload Knowledge Source</h2>
+<div class="upload-page">
+  <section class="left">
+    <div class="card source-card">
+      <header class="card-header">
+        <div>
+          <h2>Upload Knowledge Source</h2>
+          <p class="sub">One source at a time, PDF or URL.</p>
+        </div>
+        <button class="ghost" type="button" (click)="clearSource()">Clear</button>
+      </header>
 
-  <input type="file" (change)="onFileChange($event)" />
+      <div class="source-toggle">
+        <label>
+          <input
+            type="radio"
+            name="sourceType"
+            value="file"
+            [(ngModel)]="sourceType"
+            (ngModelChange)="onSourceTypeChange($event)"
+          />
+          Document
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="sourceType"
+            value="url"
+            [(ngModel)]="sourceType"
+            (ngModelChange)="onSourceTypeChange($event)"
+          />
+          URL
+        </label>
+      </div>
 
-  <div class="divider">OR</div>
+      <div
+        class="file-drop"
+        [class.active]="dragging"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+        *ngIf="sourceType === 'file'"
+      >
+        <input type="file" accept=".pdf" #fileInput hidden (change)="onFileChange($event)" />
+        <div class="drop-inner">
+          <button type="button" class="choose-btn" (click)="fileInput.click()">Choose File</button>
+          <p class="file-name">{{ selectedFile?.name || 'Drag & drop a PDF or click to select' }}</p>
+          <p class="hint">PDF only. Files upload instantly on drop.</p>
+        </div>
+      </div>
 
-  <input
-    type="text"
-    placeholder="Paste a website URL"
-    [(ngModel)]="url"
-  />
+      <div class="url-block" *ngIf="sourceType === 'url'">
+        <input
+          type="url"
+          placeholder="Paste a website URL"
+          [ngModel]="url"
+          (ngModelChange)="onUrlChange($event)"
+        />
+      </div>
 
-  <button (click)="upload()" [disabled]="loading">
-    Upload
-  </button>
+      <button
+        class="primary"
+        (click)="uploadSource()"
+        [disabled]="uploading || (sourceType === 'file' ? !selectedFile : !url)"
+      >
+        {{ uploading ? 'Processing...' : 'Upload & Build Context' }}
+      </button>
+      <p class="status" *ngIf="uploadMessage">{{ uploadMessage }}</p>
+    </div>
 
-  <p *ngIf="loading">Processing document…</p>
+    <div class="card document-card">
+      <p class="label">Document</p>
+      <div class="document-display">
+        <p class="title" *ngIf="documentId; else noDoc">{{ documentPreviewLabel }}</p>
+        <ng-template #noDoc>
+          <p class="empty">No document yet. Upload a PDF or URL to preview the source.</p>
+        </ng-template>
+        <p class="meta" *ngIf="documentId">Ready to chat with the document</p>
+      </div>
+
+      <div class="document-preview" *ngIf="pdfPreviewUrl; else previewEmpty">
+        <iframe [src]="pdfPreviewUrl" title="Document preview"></iframe>
+      </div>
+      <ng-template #previewEmpty>
+        <p class="preview-empty">Document preview will appear once the source is loaded.</p>
+      </ng-template>
+    </div>
+  </section>
+
+  <section class="right">
+    <div class="card chat-card">
+      <div class="chat-header">
+        <h2>Ask me anything</h2>
+        <span *ngIf="!documentId" class="pill">Upload required</span>
+      </div>
+
+      <div class="chat-body">
+        <div *ngIf="messages.length === 0" class="chat-empty">
+          Your questions and answers will appear here.
+        </div>
+        <div
+          *ngFor="let message of messages"
+          class="bubble"
+          [class.user]="message.role === 'user'"
+          [class.assistant]="message.role === 'assistant'"
+        >
+          {{ message.text }}
+        </div>
+        <div *ngIf="sending" class="bubble assistant thinking">Thinking…</div>
+      </div>
+
+      <div class="chat-input">
+        <input
+          type="text"
+          placeholder="Type your question"
+          [(ngModel)]="question"
+          (keydown.enter)="sendQuestion()"
+          [disabled]="!documentId || sending"
+        />
+        <button (click)="sendQuestion()" [disabled]="!question || !documentId || sending">
+          Send
+        </button>
+      </div>
+    </div>
+  </section>
 </div>
