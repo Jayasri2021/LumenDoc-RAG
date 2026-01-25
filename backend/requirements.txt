@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+langchain
+langchain-community
+pypdf
+beautifulsoup4
+faiss-cpu==1.8.0

@@ -1,0 +1,6 @@
+# venv files
+venv/
+
+__pycache__/
+
+uploaded_files/
