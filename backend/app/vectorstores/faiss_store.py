@@ -40,4 +40,8 @@ def load_faiss_index(document_id: str) -> FAISS:
     if not os.path.exists(index_path):
         raise FileNotFoundError("FAISS index not found")
 
-    return FAISS.load_local(index_path, embeddings)
+    return FAISS.load_local(
+        index_path, 
+        embeddings,
+        allow_dangerous_deserialization=True
+        )

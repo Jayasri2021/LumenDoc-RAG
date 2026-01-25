@@ -1,7 +1,6 @@
-# test file for backend/app/main.py
-from fastapi import FastAPI
 from dotenv import load_dotenv
-from app.api.routes import documents
+from fastapi import FastAPI
+from app.api.routes import documents, query
 
 load_dotenv()
 
@@ -9,6 +8,7 @@ app = FastAPI(
     title = 'Rag Document Ingestion Service')
 
 app.include_router(documents.router)
+app.include_router(query.router)
 
 
 @app.get("/")
