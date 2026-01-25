@@ -1,7 +1,7 @@
 import os
 from typing import List
-from langchain.vectorstores import FAISS
-from langchain.schema import Document
+from langchain_community.vectorstores import FAISS
+from langchain_core.documents import Document
 from app.services.embedding_service import get_embedding_model
 
 FAISS_INDEX_DIR = "faiss_indexes"
