@@ -1,0 +1,19 @@
+<div class="card upload-container">
+  <h2>📄 Upload Knowledge Source</h2>
+
+  <input type="file" (change)="onFileChange($event)" />
+
+  <div class="divider">OR</div>
+
+  <input
+    type="text"
+    placeholder="Paste a website URL"
+    [(ngModel)]="url"
+  />
+
+  <button (click)="upload()" [disabled]="loading">
+    Upload
+  </button>
+
+  <p *ngIf="loading">Processing document…</p>
+</div>

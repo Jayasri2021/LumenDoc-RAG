@@ -4,3 +4,14 @@ __pycache__/
 uploaded_files/
 .env
 faiss_indexes/
+
+
+# Frontend - Angular
+frontend/node_modules/
+frontend/.angular/
+frontend/dist/
+frontend/.vscode/
+*.log
+.DS_Store
+
+frontend/package-lock.json
