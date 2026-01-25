@@ -1,0 +1,10 @@
+<h2>Answer</h2>
+
+<p class="answer-text">{{ answer }}</p>
+
+<h3>Sources</h3>
+<ul>
+  <li *ngFor="let s of sources">
+    Page {{ s.page }} ({{ s.source }})
+  </li>
+</ul>

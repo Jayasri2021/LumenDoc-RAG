@@ -1,0 +1,27 @@
+<div class="layout">
+  <!-- LEFT: Document preview -->
+  <div class="card sidebar">
+    <h3>📑 Document</h3>
+    <p>ID: {{ documentId }}</p>
+    <p class="muted">Preview available after enhancement</p>
+
+    <button (click)="goBack()">Upload new</button>
+  </div>
+
+  <!-- RIGHT: Question + Answer -->
+  <div class="card main">
+    <textarea [(ngModel)]="question" placeholder="Ask a question about the document"></textarea>
+
+    <button (click)="ask()" [disabled]="loading">
+      Ask
+    </button>
+
+    <!-- Thinking animation -->
+    <div *ngIf="loading" class="thinking">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      AI is thinking…
+    </div>
+  </div>
+</div>
