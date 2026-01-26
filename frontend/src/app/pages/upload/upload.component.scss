@@ -9,6 +9,9 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-auto-rows: minmax(0, auto);
   align-items: stretch;
+  max-height: calc(100vh - 2rem);
+  margin: 0 auto;
+  overflow: hidden;
 }
 
 .left,
@@ -17,6 +20,15 @@
   flex-direction: column;
   gap: 1.5rem;
   align-items: stretch;
+  min-height: 0;
+}
+
+.left {
+  overflow-y: auto;
+}
+
+.right {
+  overflow: hidden;
 }
 
 .card {
@@ -261,9 +273,11 @@ input[type='text'] {
   display: flex;
   flex-direction: column;
   flex: 1;
-  min-height: 520px;
   padding: 1.5rem;
+  min-height: 0;
+  max-height: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 .chat-header {
@@ -298,6 +312,7 @@ input[type='text'] {
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.7);
   overflow-y: auto;
+  min-height: 0;
 }
 
 .chat-empty {
