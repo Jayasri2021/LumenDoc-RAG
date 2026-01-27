@@ -3,6 +3,7 @@ import { RagApiService } from '../../services/rag-api.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { finalize } from 'rxjs/operators';
 
 type ChatMessage = {
   role: 'user' | 'assistant';
@@ -91,17 +92,18 @@ export class UploadComponent {
         ? this.api.uploadPdf(this.selectedFile as File)
         : this.api.ingestUrl(this.url);
 
-    request$.subscribe({
-      next: (res) => {
-        this.uploading = false;
-        this.documentId = res.document_id;
-        this.uploadMessage = 'Document ready to chat.';
-      },
-      error: () => {
-        this.uploading = false;
-        this.uploadMessage = 'Upload failed. Please try again.';
-      }
-    });
+    request$
+      .pipe(finalize(() => (this.uploading = false)))
+      .subscribe({
+        next: (res: { document_id: string }) => {
+          this.documentId = res.document_id;
+          this.uploadMessage = 'Document ready to chat.';
+        },
+        error: (err) => {
+          const detail = err?.error?.detail || err?.message || 'Upload failed. Please try again.';
+          this.uploadMessage = detail;
+        }
+      });
   }
 
   sendQuestion() {
@@ -112,7 +114,7 @@ export class UploadComponent {
     this.question = '';
     this.sending = true;
     this.api.query(this.documentId, trimmed).subscribe({
-      next: (res) => {
+      next: (res: { answer: string }) => {
         this.messages.push({ role: 'assistant', text: res.answer });
         this.sending = false;
       },

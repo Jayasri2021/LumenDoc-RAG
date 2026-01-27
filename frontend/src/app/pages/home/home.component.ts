@@ -1,5 +1,6 @@
 // button Get started should navigate to upload page
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -8,10 +9,10 @@ import { Component } from '@angular/core';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent {  
-  // button click for upload()
-  upload() {
-    window.location.href = '/upload';
-  }
+export class HomeComponent {
+  constructor(private router: Router) {}
 
+  upload() {
+    this.router.navigate(['/upload']);
+  }
 }
