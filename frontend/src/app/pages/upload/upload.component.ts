@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone } from '@angular/core';
 import { RagApiService } from '../../services/rag-api.service.js';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -31,7 +31,12 @@ export class UploadComponent {
   pdfPreviewUrl: SafeResourceUrl | null = null;
   private previewObjectUrl?: string;
 
-  constructor(private api: RagApiService, private sanitizer: DomSanitizer) {}
+  constructor(
+    private api: RagApiService,
+    private sanitizer: DomSanitizer,
+    private zone: NgZone,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   get documentPreviewLabel() {
     if (this.selectedFile) {
@@ -84,7 +89,14 @@ export class UploadComponent {
 
   uploadSource() {
     if (this.sourceType === 'file' && !this.selectedFile) return;
-    if (this.sourceType === 'url' && !this.url) return;
+    if (this.sourceType === 'url') {
+      const normalized = this.normalizeUrl(this.url);
+      if (!normalized) {
+        this.uploadMessage = 'Please enter a valid URL (including domain).';
+        return;
+      }
+      this.url = normalized;
+    }
 
     this.uploading = true;
     const request$ =
@@ -95,7 +107,7 @@ export class UploadComponent {
     request$
       .pipe(
         timeout(60000),
-        finalize(() => (this.uploading = false))
+        finalize(() => this.updateUi(() => (this.uploading = false)))
       )
       .subscribe({
         next: (res: { document_id?: string; documentId?: string } | string | unknown) => {
@@ -106,23 +118,28 @@ export class UploadComponent {
             response?.data?.document_id ||
             (typeof res === 'string' ? res : '') ||
             '';
-          if (!docId) {
-            this.documentId = '';
-            this.uploadMessage = 'Upload succeeded but no document id was returned.';
-            return;
-          }
-          this.documentId = docId;
-          this.uploadMessage = `Document ready to chat. ID: ${docId}`;
-          this.messages = [];
+          this.updateUi(() => {
+            if (!docId) {
+              this.documentId = '';
+              this.uploadMessage = 'Upload succeeded but no document id was returned.';
+              return;
+            }
+            this.documentId = docId;
+            this.uploadMessage = `Document ready to chat. ID: ${docId}`;
+            this.messages = [];
+          });
         },
         error: (err) => {
           const detail =
             err?.error?.detail ||
+            (typeof err?.error === 'string' ? err.error : '') ||
             err?.message ||
             (err?.name === 'TimeoutError' ? 'Upload timed out. Please try again.' : '') ||
-            'Upload failed. Please try again.';
-          this.uploadMessage = detail;
-          this.documentId = '';
+            `Upload failed (status ${err?.status ?? 'unknown'}).`;
+          this.updateUi(() => {
+            this.uploadMessage = detail;
+            this.documentId = '';
+          });
         }
       });
   }
@@ -131,13 +148,17 @@ export class UploadComponent {
     const trimmed = this.question.trim();
     if (!trimmed || !this.documentId) return;
 
-    this.messages.push({ role: 'user', text: trimmed });
-    this.question = '';
-    this.sending = true;
+    this.updateUi(() => {
+      this.messages.push({ role: 'user', text: trimmed });
+      this.question = '';
+      this.sending = true;
+    });
     this.api.query(this.documentId, trimmed).pipe(timeout(60000)).subscribe({
       next: (res: { answer: string }) => {
-        this.messages.push({ role: 'assistant', text: res.answer });
-        this.sending = false;
+        this.updateUi(() => {
+          this.messages.push({ role: 'assistant', text: res.answer });
+          this.sending = false;
+        });
       },
       error: (err) => {
         const detail =
@@ -145,11 +166,13 @@ export class UploadComponent {
           err?.message ||
           (err?.name === 'TimeoutError' ? 'Query timed out. Please try again.' : '') ||
           'Sorry, I could not get an answer. Please try again.';
-        this.messages.push({
-          role: 'assistant',
-          text: detail
+        this.updateUi(() => {
+          this.messages.push({
+            role: 'assistant',
+            text: detail
+          });
+          this.sending = false;
         });
-        this.sending = false;
       }
     });
   }
@@ -209,5 +232,26 @@ export class UploadComponent {
     this.messages = [];
     this.question = '';
     this.sending = false;
+  }
+
+  private updateUi(update: () => void) {
+    this.zone.run(() => {
+      update();
+      this.cdr.detectChanges();
+    });
+  }
+
+  private normalizeUrl(rawUrl: string): string | null {
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return null;
+    try {
+      return new URL(trimmed).toString();
+    } catch {
+      try {
+        return new URL(`https://${trimmed}`).toString();
+      } catch {
+        return null;
+      }
+    }
   }
 }
