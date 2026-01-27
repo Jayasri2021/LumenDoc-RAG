@@ -10,9 +10,9 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:4200"],
-    allow_credentials=True,
+    # Relaxed for development/deployment: allows local dev ports and any hosted frontend.
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
