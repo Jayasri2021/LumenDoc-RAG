@@ -113,10 +113,11 @@
           type="text"
           placeholder="Type your question"
           [(ngModel)]="question"
+          [ngModelOptions]="{ standalone: true }"
           (keydown.enter)="sendQuestion()"
           [disabled]="!documentId || sending"
         />
-        <button (click)="sendQuestion()" [disabled]="!question || !documentId || sending">
+        <button type="button" (click)="sendQuestion()" [disabled]="!question || !documentId || sending">
           Send
         </button>
       </div>

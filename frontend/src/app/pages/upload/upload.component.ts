@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { RagApiService } from '../../services/rag-api.service';
+import { RagApiService } from '../../services/rag-api.service.js';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { finalize } from 'rxjs/operators';
+import { finalize, timeout } from 'rxjs/operators';
 
 type ChatMessage = {
   role: 'user' | 'assistant';
@@ -93,15 +93,36 @@ export class UploadComponent {
         : this.api.ingestUrl(this.url);
 
     request$
-      .pipe(finalize(() => (this.uploading = false)))
+      .pipe(
+        timeout(60000),
+        finalize(() => (this.uploading = false))
+      )
       .subscribe({
-        next: (res: { document_id: string }) => {
-          this.documentId = res.document_id;
-          this.uploadMessage = 'Document ready to chat.';
+        next: (res: { document_id?: string; documentId?: string } | string | unknown) => {
+          const response = res as { document_id?: string; documentId?: string; data?: { document_id?: string } };
+          const docId =
+            response?.document_id ||
+            response?.documentId ||
+            response?.data?.document_id ||
+            (typeof res === 'string' ? res : '') ||
+            '';
+          if (!docId) {
+            this.documentId = '';
+            this.uploadMessage = 'Upload succeeded but no document id was returned.';
+            return;
+          }
+          this.documentId = docId;
+          this.uploadMessage = `Document ready to chat. ID: ${docId}`;
+          this.messages = [];
         },
         error: (err) => {
-          const detail = err?.error?.detail || err?.message || 'Upload failed. Please try again.';
+          const detail =
+            err?.error?.detail ||
+            err?.message ||
+            (err?.name === 'TimeoutError' ? 'Upload timed out. Please try again.' : '') ||
+            'Upload failed. Please try again.';
           this.uploadMessage = detail;
+          this.documentId = '';
         }
       });
   }
@@ -113,15 +134,20 @@ export class UploadComponent {
     this.messages.push({ role: 'user', text: trimmed });
     this.question = '';
     this.sending = true;
-    this.api.query(this.documentId, trimmed).subscribe({
+    this.api.query(this.documentId, trimmed).pipe(timeout(60000)).subscribe({
       next: (res: { answer: string }) => {
         this.messages.push({ role: 'assistant', text: res.answer });
         this.sending = false;
       },
-      error: () => {
+      error: (err) => {
+        const detail =
+          err?.error?.detail ||
+          err?.message ||
+          (err?.name === 'TimeoutError' ? 'Query timed out. Please try again.' : '') ||
+          'Sorry, I could not get an answer. Please try again.';
         this.messages.push({
           role: 'assistant',
-          text: 'Sorry, I could not get an answer. Please try again.'
+          text: detail
         });
         this.sending = false;
       }
